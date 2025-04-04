@@ -1,0 +1,243 @@
+Ques 1=
+
+Code:
+
+import java.sql.*;
+import java.util.Scanner;
+
+public class ProductCRUD {
+    static final String URL = "jdbc:mysql://localhost:3306/your_database";
+    static final String USER = "your_username";
+    static final String PASSWORD = "your_password";
+
+    public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);
+        try (Connection conn = DriverManager.getConnection(URL, USER, PASSWORD)) {
+            while (true) {
+                System.out.println("\n1. Add Product  2. View Products  3. Update Product  4. Delete Product  5. Exit");
+                int choice = sc.nextInt();
+                if (choice == 5) break;
+
+                switch (choice) {
+                    case 1 -> {
+                        System.out.print("Enter Name: ");
+                        sc.nextLine();
+                        String name = sc.nextLine();
+                        System.out.print("Enter Price: ");
+                        double price = sc.nextDouble();
+                        System.out.print("Enter Quantity: ");
+                        int quantity = sc.nextInt();
+                        try (PreparedStatement ps = conn.prepareStatement("INSERT INTO Product (ProductName, Price, Quantity) VALUES (?, ?, ?)")) {
+                            ps.setString(1, name);
+                            ps.setDouble(2, price);
+                            ps.setInt(3, quantity);
+                            ps.executeUpdate();
+                            System.out.println("Product Added.");
+                        }
+                    }
+                    case 2 -> {
+                        try (Statement stmt = conn.createStatement(); ResultSet rs = stmt.executeQuery("SELECT * FROM Product")) {
+                            System.out.println("ID | Name | Price | Quantity");
+                            while (rs.next()) {
+                                System.out.println(rs.getInt(1) + " | " + rs.getString(2) + " | " + rs.getDouble(3) + " | " + rs.getInt(4));
+                            }
+                        }
+                    }
+                    case 3 -> {
+                        System.out.print("Enter Product ID to Update: ");
+                        int id = sc.nextInt();
+                        System.out.print("Enter New Name: ");
+                        sc.nextLine();
+                        String newName = sc.nextLine();
+                        System.out.print("Enter New Price: ");
+                        double newPrice = sc.nextDouble();
+                        System.out.print("Enter New Quantity: ");
+                        int newQuantity = sc.nextInt();
+                        try (PreparedStatement ps = conn.prepareStatement("UPDATE Product SET ProductName=?, Price=?, Quantity=? WHERE ProductID=?")) {
+                            ps.setString(1, newName);
+                            ps.setDouble(2, newPrice);
+                            ps.setInt(3, newQuantity);
+                            ps.setInt(4, id);
+                            int rows = ps.executeUpdate();
+                            System.out.println(rows > 0 ? "Product Updated." : "Product Not Found.");
+                        }
+                    }
+                    case 4 -> {
+                        System.out.print("Enter Product ID to Delete: ");
+                        int delId = sc.nextInt();
+                        try (PreparedStatement ps = conn.prepareStatement("DELETE FROM Product WHERE ProductID=?")) {
+                            ps.setInt(1, delId);
+                            int rows = ps.executeUpdate();
+                            System.out.println(rows > 0 ? "Product Deleted." : "Product Not Found.");
+                        }
+                    }
+                    default -> System.out.println("Invalid Choice! Try again.");
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        sc.close();
+    }
+}
+
+Output:
+
+Adding a product=
+1. Add Product  2. View Products  3. Update Product  4. Delete Product  5. Exit
+1
+Enter Name: Laptop
+Enter Price: 50000
+Enter Quantity: 10
+Product Added.
+
+Viewing products=
+1. Add Product  2. View Products  3. Update Product  4. Delete Product  5. Exit
+2
+ID | Name | Price | Quantity
+1 | Laptop | 50000.0 | 10
+
+Updating a product=
+1. Add Product  2. View Products  3. Update Product  4. Delete Product  5. Exit
+3
+Enter Product ID to Update: 1
+Enter New Name: Gaming Laptop
+Enter New Price: 70000
+Enter New Quantity: 5
+Product Updated.
+
+Deleting a product=
+1. Add Product  2. View Products  3. Update Product  4. Delete Product  5. Exit
+4
+Enter Product ID to Delete: 1
+Product Deleted.
+
+Exiting a program=
+1. Add Product  2. View Products  3. Update Product  4. Delete Product  5. Exit
+5
+
+
+Ques 2=
+
+Code:
+
+import java.sql.*;
+import java.util.Scanner;
+
+class StudentManagement {
+    private Connection conn;
+    private Scanner scanner;
+
+    public StudentManagement() {
+        try {
+            conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/StudentDB", "root", "password");
+            scanner = new Scanner(System.in);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void addStudent() {
+        System.out.print("Enter Name: ");
+        String name = scanner.next();
+        System.out.print("Enter Department: ");
+        String dept = scanner.next();
+        System.out.print("Enter Marks: ");
+        double marks = scanner.nextDouble();
+        
+        try (PreparedStatement stmt = conn.prepareStatement("INSERT INTO students (Name, Department, Marks) VALUES (?, ?, ?)")) {
+            stmt.setString(1, name);
+            stmt.setString(2, dept);
+            stmt.setDouble(3, marks);
+            stmt.executeUpdate();
+            System.out.println("Student Added Successfully!");
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void viewStudents() {
+        try (Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery("SELECT * FROM students")) {
+            while (rs.next()) {
+                System.out.println("ID: " + rs.getInt("StudentID") + ", Name: " + rs.getString("Name") +
+                        ", Dept: " + rs.getString("Department") + ", Marks: " + rs.getDouble("Marks"));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void updateStudent() {
+        System.out.print("Enter Student ID to Update: ");
+        int id = scanner.nextInt();
+        System.out.print("Enter New Marks: ");
+        double marks = scanner.nextDouble();
+
+        try (PreparedStatement stmt = conn.prepareStatement("UPDATE students SET Marks = ? WHERE StudentID = ?")) {
+            stmt.setDouble(1, marks);
+            stmt.setInt(2, id);
+            int rows = stmt.executeUpdate();
+            System.out.println(rows > 0 ? "Student Updated Successfully!" : "Student Not Found!");
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void deleteStudent() {
+        System.out.print("Enter Student ID to Delete: ");
+        int id = scanner.nextInt();
+
+        try (PreparedStatement stmt = conn.prepareStatement("DELETE FROM students WHERE StudentID = ?")) {
+            stmt.setInt(1, id);
+            int rows = stmt.executeUpdate();
+            System.out.println(rows > 0 ? "Student Deleted Successfully!" : "Student Not Found!");
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void menu() {
+        while (true) {
+            System.out.println("\n1. Add Student  2. View Students  3. Update Marks  4. Delete Student  5. Exit");
+            System.out.print("Choose: ");
+            int choice = scanner.nextInt();
+            switch (choice) {
+                case 1 -> addStudent();
+                case 2 -> viewStudents();
+                case 3 -> updateStudent();
+                case 4 -> deleteStudent();
+                case 5 -> { System.out.println("Exiting..."); return; }
+                default -> System.out.println("Invalid Choice!");
+            }
+        }
+    }
+
+    public static void main(String[] args) {
+        new StudentManagement().menu();
+    }
+}
+
+Output:
+
+1. Add Student  2. View Students  3. Update Marks  4. Delete Student  5. Exit
+Choose: 1
+Enter Name: John
+Enter Department: CS
+Enter Marks: 85
+Student Added Successfully!
+
+Choose: 2
+ID: 1, Name: John, Dept: CS, Marks: 85.0
+
+Choose: 3
+Enter Student ID to Update: 1
+Enter New Marks: 90
+Student Updated Successfully!
+
+Choose: 4
+Enter Student ID to Delete: 1
+Student Deleted Successfully!
+
+Choose: 5
+Exiting...
